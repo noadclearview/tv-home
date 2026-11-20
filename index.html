@@ -41,7 +41,7 @@ html,body{margin:0;padding:0;height:100%;background:#000;overflow:hidden;color:#
   {name:"YouTube",id:"YouTube",sub:"Videos, music and live",c1:"#ff3b30",c2:"#2b0b0b"},
   {name:"Setup",id:"",sub:"Set your TV's address",c1:"#8e8e93",c2:"#1c1c1e"}
  ];
- var ip="";try{ip=localStorage.getItem("tvip")||"";}catch(e){}
+ var ip="192.168.1.115";try{ip=localStorage.getItem("tvip")||ip;}catch(e){}
  var cur=0,row=document.getElementById("row"),tiles=[];
  for(var i=0;i<apps.length;i++){(function(i){
   var t=document.createElement("div");t.className="tile";
