@@ -1,0 +1,86 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Home</title>
+<meta name="viewport" content="width=1280">
+<style>
+html,body{margin:0;padding:0;height:100%;background:#000;overflow:hidden;color:#fff;
+ font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;}
+#hero{position:absolute;left:0;top:0;right:0;height:62%;
+ -webkit-transition:background .5s;transition:background .5s;}
+#hero .fade{position:absolute;left:0;right:0;bottom:0;height:45%;
+ background:-webkit-linear-gradient(top,rgba(0,0,0,0),#000);background:linear-gradient(rgba(0,0,0,0),#000);}
+#heroTitle{position:absolute;left:6%;bottom:22%;font-size:64px;font-weight:700;letter-spacing:-1px;}
+#heroSub{position:absolute;left:6%;bottom:13%;font-size:24px;opacity:.75;}
+#clock{position:absolute;right:5%;top:5%;font-size:30px;font-weight:300;opacity:.9;}
+#row{position:absolute;left:5%;right:5%;top:66%;height:24%;white-space:nowrap;}
+.tile{display:inline-block;vertical-align:top;width:17%;height:100%;margin-right:2.2%;border-radius:14px;
+ position:relative;cursor:pointer;-webkit-transition:-webkit-transform .2s;transition:transform .2s;
+ box-shadow:0 8px 20px rgba(0,0,0,.6);}
+.tile span{position:absolute;left:0;right:0;top:50%;margin-top:-18px;text-align:center;font-size:30px;font-weight:700;}
+.tile small{position:absolute;left:0;right:0;bottom:-38px;text-align:center;font-size:20px;opacity:0;}
+.tile.on{-webkit-transform:scale(1.13);transform:scale(1.13);box-shadow:0 0 0 4px #fff,0 18px 40px rgba(255,255,255,.25);}
+.tile.on small{opacity:.9;}
+#toast{position:absolute;left:50%;top:44%;width:560px;margin-left:-280px;text-align:center;font-size:28px;
+ background:rgba(40,40,40,.92);border-radius:16px;padding:22px 0;display:none;}
+#setup{position:absolute;left:50%;top:22%;width:640px;margin-left:-320px;background:#1c1c1e;border-radius:20px;
+ padding:30px;display:none;font-size:24px;text-align:center;}
+#setup input{font-size:34px;width:80%;padding:10px;margin:20px 0;border-radius:10px;border:0;text-align:center;}
+#setup button{font-size:26px;padding:12px 40px;border-radius:12px;border:0;background:#fff;color:#000;margin:6px;}
+</style></head><body>
+<div id="hero"><div class="fade"></div><div id="heroTitle"></div><div id="heroSub"></div></div>
+<div id="clock"></div>
+<div id="row"></div>
+<div id="toast"></div>
+<div id="setup">TV address on this Wi-Fi<br><small style="opacity:.6">Settings &gt; Network &gt; Network Status &gt; IP Settings</small><br>
+ <input id="ipBox" type="text"><br><button id="saveBtn">Save</button><button id="cancelBtn">Cancel</button></div>
+<iframe name="sink" style="display:none"></iframe>
+<form id="dial" method="POST" target="sink" enctype="text/plain" style="display:none"><input type="hidden" name="x" value=""></form>
+<script>
+(function(){
+ var apps=[
+  {name:"Netflix",id:"Netflix",sub:"Movies and TV shows",c1:"#e50914",c2:"#3a0003"},
+  {name:"YouTube",id:"YouTube",sub:"Videos, music and live",c1:"#ff3b30",c2:"#2b0b0b"},
+  {name:"Setup",id:"",sub:"Set your TV's address",c1:"#8e8e93",c2:"#1c1c1e"}
+ ];
+ var ip="";try{ip=localStorage.getItem("tvip")||"";}catch(e){}
+ var cur=0,row=document.getElementById("row"),tiles=[];
+ for(var i=0;i<apps.length;i++){(function(i){
+  var t=document.createElement("div");t.className="tile";
+  t.style.background="-webkit-linear-gradient(135deg,"+apps[i].c1+","+apps[i].c2+")";
+  t.style.background="linear-gradient(135deg,"+apps[i].c1+","+apps[i].c2+")";
+  t.innerHTML="<span>"+apps[i].name+"</span><small>"+apps[i].name+"</small>";
+  t.onclick=function(){cur=i;draw();go();};
+  t.onmouseover=function(){cur=i;draw();};
+  row.appendChild(t);tiles.push(t);})(i);}
+ function draw(){
+  for(var i=0;i<tiles.length;i++)tiles[i].className="tile"+(i==cur?" on":"");
+  var a=apps[cur],h=document.getElementById("hero");
+  h.style.background="-webkit-radial-gradient(30% 30%,"+a.c1+","+a.c2+" 70%,#000)";
+  h.style.background="radial-gradient(circle at 30% 30%,"+a.c1+","+a.c2+" 70%,#000)";
+  document.getElementById("heroTitle").innerHTML=a.name;
+  document.getElementById("heroSub").innerHTML=a.sub;}
+ function toast(m){var t=document.getElementById("toast");t.innerHTML=m;t.style.display="block";
+  clearTimeout(toast.t);toast.t=setTimeout(function(){t.style.display="none";},2500);}
+ function showSetup(){var s=document.getElementById("setup");s.style.display="block";
+  var b=document.getElementById("ipBox");b.value=ip||"192.168.";b.focus();}
+ function hideSetup(){document.getElementById("setup").style.display="none";}
+ document.getElementById("saveBtn").onclick=function(){
+  ip=document.getElementById("ipBox").value.replace(/\s/g,"");
+  try{localStorage.setItem("tvip",ip);}catch(e){}hideSetup();toast("Saved: "+ip);};
+ document.getElementById("cancelBtn").onclick=hideSetup;
+ function go(){var a=apps[cur];
+  if(!a.id){showSetup();return;}
+  if(!ip){toast("Set your TV address first");showSetup();return;}
+  var f=document.getElementById("dial");f.action="http://"+ip+":8080/ws/apps/"+a.id;f.submit();
+  toast("Opening "+a.name+"&hellip;");}
+ document.onkeydown=function(e){
+  if(document.getElementById("setup").style.display=="block")return;
+  var k=e.keyCode;
+  if(k==37){cur=(cur+apps.length-1)%apps.length;draw();return false;}
+  if(k==39){cur=(cur+1)%apps.length;draw();return false;}
+  if(k==13||k==29443){go();return false;}};
+ function tick(){var d=new Date(),h=d.getHours(),m=d.getMinutes();
+  document.getElementById("clock").innerHTML=((h%12)||12)+":"+(m<10?"0":"")+m;}
+ tick();setInterval(tick,10000);draw();
+ if(!ip)setTimeout(showSetup,600);
+})();
+</script></body></html>
