@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>TV Remote</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0d0d10">
+<style>
+:root{--bg:#0d0d10;--btn:#1f1f25;--btn2:#2a2a32;--txt:#f2f2f5;--dim:#8a8a96;--acc:#4f8cff;--red:#ff453a}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.2 -apple-system,system-ui,"Segoe UI",Roboto,sans-serif}
+body{padding:max(14px,env(safe-area-inset-top)) 16px max(18px,env(safe-area-inset-bottom));max-width:440px;margin:0 auto}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+#status{font-size:13px;color:var(--dim);display:flex;align-items:center;gap:6px}
+#dot{width:8px;height:8px;border-radius:50%;background:#555}
+button{font:inherit;color:inherit;background:var(--btn);border:0;border-radius:16px;min-height:54px;cursor:pointer;
+ display:flex;align-items:center;justify-content:center;gap:6px;transition:transform .06s,background .1s}
+button:active,button.hit{transform:scale(.94);background:var(--btn2)}
+svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.row{display:grid;gap:10px;margin-bottom:12px}
+.c3{grid-template-columns:repeat(3,1fr)}.c4{grid-template-columns:repeat(4,1fr)}.c2{grid-template-columns:1fr 1fr}
+#power{width:54px;background:var(--red);border-radius:50%}
+#pad{position:relative;width:min(78vw,300px);aspect-ratio:1;margin:6px auto 16px;border-radius:50%;background:var(--btn)}
+#pad button{position:absolute;background:transparent;border-radius:12px;width:33%;height:33%;min-height:0}
+#pad button:active{background:var(--btn2)}
+#pad .u{top:2%;left:33.5%}#pad .d{bottom:2%;left:33.5%}#pad .l{left:2%;top:33.5%}#pad .r{right:2%;top:33.5%}
+#pad .ok{top:30%;left:30%;width:40%;height:40%;border-radius:50%;background:var(--btn2);font-weight:700;font-size:18px}
+.rocker{display:flex;flex-direction:column;background:var(--btn);border-radius:16px;overflow:hidden}
+.rocker button{border-radius:0;background:transparent;flex:1}
+.rocker span{text-align:center;font-size:11px;color:var(--dim);letter-spacing:.08em}
+.side{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:10px;align-items:stretch;margin-bottom:12px}
+.mid{display:grid;gap:10px}
+.app{font-weight:700;letter-spacing:.02em}
+.nf{background:#e50914}.yt{background:#ff0000}
+small.lbl{font-size:12px;color:var(--dim)}
+details{margin-top:4px}
+summary{color:var(--dim);font-size:14px;padding:10px 0;cursor:pointer;list-style:none;text-align:center}
+#toast{position:fixed;left:50%;bottom:max(24px,env(safe-area-inset-bottom));transform:translateX(-50%);background:#2c2c34;
+ color:var(--txt);padding:10px 16px;border-radius:12px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90vw;text-align:center}
+#toast.show{opacity:1}
+</style>
+</head><body>
+<header>
+  <div><div style="font-weight:700;font-size:18px">Bravia</div><div id="status"><span id="dot"></span><span id="stxt">Connecting…</span></div></div>
+  <button id="power" aria-label="Power" data-power><svg viewBox="0 0 24 24"><path d="M12 3v9"/><path d="M6.3 7.3a8 8 0 1 0 11.4 0"/></svg></button>
+</header>
+
+<div class="row c4">
+  <button data-key="Input"><small class="lbl">Input</small></button>
+  <button data-key="Home" aria-label="Home"><svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/></svg></button>
+  <button data-key="Options"><small class="lbl">Options</small></button>
+  <button data-key="Mute" aria-label="Mute"><svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="m17 9 5 6M22 9l-5 6"/></svg></button>
+</div>
+
+<div id="pad">
+  <button class="u" data-key="Up" aria-label="Up"><svg viewBox="0 0 24 24"><path d="m6 15 6-6 6 6"/></svg></button>
+  <button class="l" data-key="Left" aria-label="Left"><svg viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg></button>
+  <button class="ok" data-key="Confirm">OK</button>
+  <button class="r" data-key="Right" aria-label="Right"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button>
+  <button class="d" data-key="Down" aria-label="Down"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
+</div>
+
+<div class="side">
+  <div class="rocker">
+    <button data-key="VolumeUp" data-repeat aria-label="Volume up"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+    <span>VOL</span>
+    <button data-key="VolumeDown" data-repeat aria-label="Volume down"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+  </div>
+  <div class="mid">
+    <button data-key="Return" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg>Back</button>
+    <button data-key="Play" aria-label="Play"><svg viewBox="0 0 24 24"><path d="M7 5v14l11-7z"/></svg></button>
+    <button data-key="Pause" aria-label="Pause"><svg viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg></button>
+  </div>
+  <div class="rocker">
+    <button data-key="ChannelUp" data-repeat aria-label="Channel up"><svg viewBox="0 0 24 24"><path d="m6 15 6-6 6 6"/></svg></button>
+    <span>CH</span>
+    <button data-key="ChannelDown" data-repeat aria-label="Channel down"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
+  </div>
+</div>
+
+<div class="row c3">
+  <button data-key="Rewind" aria-label="Rewind"><svg viewBox="0 0 24 24"><path d="M11 6 4 12l7 6zM20 6l-7 6 7 6z"/></svg></button>
+  <button data-key="Stop" aria-label="Stop"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1"/></svg></button>
+  <button data-key="Forward" aria-label="Fast forward"><svg viewBox="0 0 24 24"><path d="m13 6 7 6-7 6zM4 6l7 6-7 6z"/></svg></button>
+</div>
+
+<div class="row c2">
+  <button class="app nf" data-app="Netflix">NETFLIX</button>
+  <button class="app yt" data-app="YouTube">YouTube</button>
+</div>
+
+<details>
+  <summary>Numbers &amp; HDMI ▾</summary>
+  <div class="row c3" id="nums"></div>
+  <div class="row c4">
+    <button data-key="Hdmi1">HDMI 1</button><button data-key="Hdmi2">HDMI 2</button>
+    <button data-key="Hdmi3">HDMI 3</button><button data-key="Hdmi4">HDMI 4</button>
+  </div>
+</details>
+
+<div id="toast"></div>
+
+<script>
+(function(){
+  var nums=document.getElementById('nums');
+  [1,2,3,4,5,6,7,8,9,'',0,''].forEach(function(n){
+    if(n===''){nums.appendChild(document.createElement('div'));return;}
+    var b=document.createElement('button');b.textContent=n;b.setAttribute('data-key','Num'+n);nums.appendChild(b);
+  });
+
+  var toastEl=document.getElementById('toast'),tt;
+  function toast(m){toastEl.textContent=m;toastEl.classList.add('show');clearTimeout(tt);tt=setTimeout(function(){toastEl.classList.remove('show')},2600);}
+  function buzz(){if(navigator.vibrate)navigator.vibrate(12);}
+
+  function call(path,body){
+    return fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body||{})})
+      .then(function(r){return r.json()})
+      .then(function(j){if(!j.ok)throw new Error(j.error||'Failed');setOnline(true);return j;})
+      .catch(function(e){toast(e.message);setOnline(false);throw e;});
+  }
+  function setOnline(ok,txt){
+    document.getElementById('dot').style.background=ok?'#30d158':'#ff9f0a';
+    document.getElementById('stxt').textContent=txt||(ok?'Connected':'Can’t reach TV');
+  }
+
+  function press(el){
+    buzz();
+    if(el.hasAttribute('data-power'))return call('/api/power').then(function(j){toast('Power '+j.power)},function(){});
+    if(el.hasAttribute('data-app'))return call('/api/app',{id:el.getAttribute('data-app')}).then(function(){toast('Opening '+el.getAttribute('data-app')+'…')},function(){});
+    var k=el.getAttribute('data-key');if(k)call('/api/key',{name:k}).catch(function(){});
+  }
+
+  // Tap, plus hold-to-repeat for volume / channel.
+  var holdT,repT;
+  function stop(){clearTimeout(holdT);clearInterval(repT);}
+  document.addEventListener('pointerdown',function(e){
+    var el=e.target.closest('button');if(!el||el.closest('summary'))return;
+    e.preventDefault();press(el);
+    if(el.hasAttribute('data-repeat')){holdT=setTimeout(function(){repT=setInterval(function(){press(el)},180)},450);}
+  });
+  ['pointerup','pointercancel','pointerleave'].forEach(function(t){document.addEventListener(t,stop)});
+  document.addEventListener('contextmenu',function(e){e.preventDefault()});
+
+  function poll(){
+    fetch('/api/status').then(function(r){return r.json()}).then(function(j){
+      setOnline(j.ok,j.ok?('TV '+(j.power==='active'?'on':'in standby')):'Can’t reach TV at '+j.tv);
+    }).catch(function(){setOnline(false,'Remote server offline');});
+  }
+  poll();setInterval(poll,8000);
+})();
+</script>
+</body></html>
